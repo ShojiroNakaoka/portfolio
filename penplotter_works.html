@@ -169,6 +169,33 @@
         background-color: #ffffff;
       }
 
+      /* Mobile: fit two Small thumbnails per row (grid is preview + overflow only). */
+      @media (max-width: 42rem) {
+        .gallery-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .gallery-grid .piece {
+          display: block;
+          flex: 0 0 calc((100% - 0.5rem) / 2);
+          max-width: calc((100% - 0.5rem) / 2);
+          margin: 0;
+          box-sizing: border-box;
+        }
+
+        .gallery-grid .thumb-wrap {
+          width: 100%;
+        }
+
+        .gallery-grid .thumb-wrap img {
+          max-width: 100%;
+          width: 100%;
+          height: auto;
+        }
+      }
+
       .piece-caption {
         display: block;
         font-size: 12px;
