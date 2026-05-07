@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SHOJIRO NAKAOKA</title>
+    <style>
+      /* Early-90s Mosaic / Netscape era palette and typography */
+      body {
+        background-color: #c0c0c0;
+        color: #000000;
+        margin: 8px;
+        font-family: "Times New Roman", Times, serif;
+        font-size: medium;
+      }
+
+      a:link {
+        color: #0000ff;
+      }
+
+      a:visited {
+        color: #551a8b;
+      }
+
+      a:active {
+        color: #ff0000;
+      }
+
+      /* Marker: flat + gradient band; per-element toggles data-marker-flat / data-marker-band (JS). */
+      .random-marker {
+        display: inline;
+        padding: 0.08em 0.1em;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        max-width: 100%;
+        vertical-align: baseline;
+        background-color: var(--marker-bg-flat, hsla(55, 85%, 78%, 0.32));
+        background-image: linear-gradient(
+          180deg,
+          transparent var(--marker-pct-start, 4%),
+          var(--marker-fill, hsla(55, 85%, 62%, 0.65)) var(--marker-pct-start, 4%),
+          var(--marker-fill, hsla(55, 85%, 62%, 0.65)) var(--marker-pct-end, 96%),
+          transparent var(--marker-pct-end, 96%)
+        );
+      }
+
+      .random-marker[data-marker-flat="0"] {
+        background-color: transparent;
+      }
+
+      .random-marker[data-marker-band="0"] {
+        background-image: none;
+      }
+
+      .random-marker[data-marker-flat="0"][data-marker-band="0"] {
+        padding: 0;
+      }
+
+      h1.techno-drawing-headline {
+        font-size: clamp(1.75rem, 5vw, 2.75rem);
+        font-weight: normal;
+        margin: 0 0 0.2em;
+        line-height: 1.05;
+        letter-spacing: 0.04em;
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      h3 {
+        font-size: 1.17em;
+        font-weight: bold;
+        margin: 1em 0 0.5em;
+      }
+
+      hr {
+        border: 0;
+        height: 2px;
+        color: #c0c0c0;
+        background-color: #c0c0c0;
+        border-top: 1px solid #808080;
+        border-bottom: 1px solid #ffffff;
+        margin: 1em 0;
+      }
+
+      ul {
+        margin: 0.5em 0;
+        padding-left: 2.5em;
+      }
+
+      p {
+        margin: 0.4em 0;
+      }
+
+      :lang(en) {
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      /* Monospace + padded lines so columns align with |E x 3| row */
+      .ascii-art {
+        font-family: "Courier New", Courier, monospace;
+        font-size: medium;
+        margin: 0.4em 0;
+      }
+
+      .title-end-decoration {
+        white-space: nowrap;
+      }
+
+      /* Random block buffer before gallery series */
+      .series-buffer-zone {
+        font-family: "Courier New", Courier, monospace;
+        font-size: 10px;
+        line-height: 1.05;
+        margin: 1.35em 0 1.6em;
+        padding: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        white-space: pre;
+        color: #000000;
+        user-select: none;
+      }
+
+      .series-buffer-zone::-webkit-scrollbar {
+        display: none;
+      }
+
+      .gallery-grid {
+        display: block;
+      }
+
+      .piece {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0.4em 0.8em 0.6em 0;
+      }
+
+      .thumb-wrap {
+        width: auto;
+      }
+
+      .thumb-wrap img {
+        display: block;
+        max-width: 225px;
+        width: auto;
+        height: auto;
+        border: 2px groove #c0c0c0;
+        background-color: #ffffff;
+      }
+
+      .piece-caption {
+        display: block;
+        font-size: 12px;
+      }
+
+      .piece-caption span:last-child {
+        margin-left: 0;
+        display: inline;
+      }
+    </style>
+    <script>
+      (function (global) {
+        function randomHsla(fillStyle) {
+          var h = Math.floor(Math.random() * 360);
+          var s = 28 + Math.random() * 72;
+          var l = fillStyle ? 42 + Math.random() * 38 : 55 + Math.random() * 32;
+          var a = fillStyle ? 0.3 + Math.random() * 0.7 : 0.1 + Math.random() * 0.88;
+          return "hsla(" + h + ", " + s + "%, " + l + "%, " + a + ")";
+        }
+
+        function randomMarkerColors() {
+          return {
+            fill: randomHsla(true),
+            flat: randomHsla(false),
+          };
+        }
+
+        function randomMarkerGradientStops() {
+          var minBand = 38 + Math.random() * 22;
+          var maxBand = 97;
+          var end = 40 + Math.random() * 59;
+          end = Math.min(99, Math.max(minBand + 5, end));
+          var maxStart = end - minBand;
+          var start = Math.random() * maxStart;
+          if (end - start > maxBand) {
+            start = Math.max(0, end - maxBand);
+          }
+          return {
+            start: start.toFixed(1) + "%",
+            end: end.toFixed(1) + "%",
+          };
+        }
+
+        function applyRandomMarkerFills(root) {
+          var scope = root || document;
+          var nodes = scope.querySelectorAll(".random-marker:not([data-marker-fill-set])");
+          for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            var bandOn = Math.random() < 0.5;
+            var flatOn = Math.random() < 0.5;
+            el.setAttribute("data-marker-band", bandOn ? "1" : "0");
+            el.setAttribute("data-marker-flat", flatOn ? "1" : "0");
+
+            el.style.removeProperty("--marker-fill");
+            el.style.removeProperty("--marker-bg-flat");
+            el.style.removeProperty("--marker-pct-start");
+            el.style.removeProperty("--marker-pct-end");
+
+            if (bandOn || flatOn) {
+              var colors = randomMarkerColors();
+              if (flatOn) {
+                el.style.setProperty("--marker-bg-flat", colors.flat);
+              }
+              if (bandOn) {
+                var stops = randomMarkerGradientStops();
+                el.style.setProperty("--marker-fill", colors.fill);
+                el.style.setProperty("--marker-pct-start", stops.start);
+                el.style.setProperty("--marker-pct-end", stops.end);
+              }
+            }
+
+            el.setAttribute("data-marker-fill-set", "1");
+          }
+        }
+
+        function generateTitleEndDecorationString(targetLen) {
+          var chars = [
+            "\u2592",
+            "\u2591",
+            "\u2588",
+            "\u2570",
+            "\u2500",
+            "\u256e",
+            "\u251c",
+            "\u2524",
+            "\u2502",
+            "\u2534",
+            "\u252c",
+            "\u253c",
+            "\u256f",
+            "\u256d",
+            "(",
+            ")",
+            "_",
+            " ",
+          ];
+          var motifs = [
+            "\u2570\u2500\u256e",
+            "\u251c\u2500\u2500",
+            "(_)",
+            "( )",
+            "(_)(_)",
+            "(_)(_)(_)",
+          ];
+          var n = chars.length;
+          var line = "";
+          while (line.length < targetLen) {
+            var placed = false;
+            if (Math.random() < 0.28 && line.length + 2 < targetLen) {
+              var m = motifs[Math.floor(Math.random() * motifs.length)];
+              if (line.length + m.length <= targetLen) {
+                line += m;
+                placed = true;
+              }
+            }
+            if (!placed) {
+              line += chars[Math.floor(Math.random() * n)];
+            }
+          }
+          return line.slice(0, targetLen);
+        }
+
+        function seriesLineContainerWidthPx() {
+          var host = document.getElementById("gallery-host");
+          if (host) {
+            return host.clientWidth || window.innerWidth || document.documentElement.clientWidth || 960;
+          }
+          var main = document.querySelector("main");
+          if (main && main.clientWidth > 0) {
+            return main.clientWidth;
+          }
+          var buf = document.getElementById("series-buffer-zone");
+          if (buf && buf.clientWidth > 0) {
+            return buf.clientWidth;
+          }
+          return window.innerWidth || document.documentElement.clientWidth || 960;
+        }
+
+        function seriesLineCharCount() {
+          var w = seriesLineContainerWidthPx();
+          return Math.max(40, Math.floor(w / 6.4));
+        }
+
+        function buildTitleEndDecoration() {
+          var el = document.getElementById("title-end-decoration");
+          if (!el) return;
+          var len = 18 + Math.floor(Math.random() * 20);
+          el.textContent = " " + generateTitleEndDecorationString(len);
+        }
+
+        function buildSeriesBufferZone() {
+          var el = document.getElementById("series-buffer-zone");
+          if (!el) return;
+          var chars = ["\u2592", "\u2591", "\u2588"];
+          var rows = 5 + Math.floor(Math.random() * 10);
+          var cols = seriesLineCharCount();
+          var lines = [];
+          for (var r = 0; r < rows; r++) {
+            var line = "";
+            for (var c = 0; c < cols; c++) {
+              line += chars[Math.floor(Math.random() * 3)];
+            }
+            lines.push(line);
+          }
+          el.textContent = lines.join("\n");
+        }
+
+        global.applyRandomMarkerFills = applyRandomMarkerFills;
+        global.seriesLineContainerWidthPx = seriesLineContainerWidthPx;
+        global.seriesLineCharCount = seriesLineCharCount;
+        global.buildSeriesBufferZone = buildSeriesBufferZone;
+
+        document.addEventListener("DOMContentLoaded", function () {
+          buildTitleEndDecoration();
+          applyRandomMarkerFills(document);
+          buildSeriesBufferZone();
+          var bufferResizeTimer;
+          window.addEventListener(
+            "resize",
+            function () {
+              clearTimeout(bufferResizeTimer);
+              bufferResizeTimer = setTimeout(buildSeriesBufferZone, 280);
+            },
+            { passive: true }
+          );
+        });
+      })(window);
+    </script>
+  </head>
+  <body bgcolor="#c0c0c0" text="#000000" link="#0000ff" vlink="#551a8b" alink="#ff0000">
+    <header>
+      <h1 class="techno-drawing-headline">
+        <span class="random-marker"><span lang="en">SHOJIRO NAKAOKA</span> / <span lang="ja">中岡将二郎</span></span
+        ><span
+          class="title-end-decoration random-marker"
+          id="title-end-decoration"
+          lang="en"
+          aria-hidden="true"
+        ></span>
+      </h1>
+    </header>
+    <main>
+      <p>
+        <span class="random-marker"
+          ><span lang="en"
+            >Shojiro Nakaoka is a composer and artist working on the fringes of sound, code, and visual media.<br />
+            His practice explores generative systems that translate audio signals and computational processes into visual
+            forms, often materialized through pen plotter drawings and audiovisual works.<br />
+            By navigating the boundary between digital structures and physical output, his work reveals hidden patterns,
+            emergent behaviors, and the aesthetics of computation.</span
+          ></span
+        >
+      </p>
+      <p>
+        <span class="random-marker"
+          ><span lang="ja"
+            >中岡将二郎は、音・コード・視覚メディアの境界領域で活動する作曲家／アーティスト。<br />
+            音響信号や計算プロセスを視覚へと変換する生成システムを探求し、その成果はペンプロッターによるドローイングやオーディオビジュアル作品として具現化される。<br />
+            デジタルな構造と物理的な出力のあいだを往還することで、潜在するパターンや創発的な振る舞い、計算の美学を可視化する。</span
+          ></span
+        >
+      </p>
+      <pre class="ascii-art" lang="en"> /MMM\   /MMM\   /MMM\ 
+|E x 3| |E x 3| |E x 3|
+ \WWW/   \WWW/   \WWW/ </pre>
+
+      <ul>
+        <li>
+          <a
+            class="random-marker"
+            href="https://viridian-adapter-f76.notion.site/Exhibition-online-offline-27b72edc8aa68079b649e596545fd41b"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span lang="en">Exhibition / Event</span> / <span lang="ja">展示・イベント</span></a
+          >
+        </li>
+        <li>
+          <a class="random-marker" href="penplotter_works.html"
+            ><span lang="en">Pen plotter works</span> / <span lang="ja">ペンプロッター作品</span></a
+          >
+        </li>
+        <li>
+          <a
+            class="random-marker"
+            href="https://www.raster.art/artist/shojiro-nakaoka"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span lang="en">Raster NFT catalog</span> / <span lang="ja">Raster NFTカタログ</span></a
+          >
+        </li>
+        <li>
+          <a
+            class="random-marker"
+            href="https://viridian-adapter-f76.notion.site/Publications-27b72edc8aa6802ab04bdb6ce9471427"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span lang="en">Publishing &amp; media</span> / <span lang="ja">刊行・メディア</span></a
+          >
+        </li>
+      </ul>
+
+      <p><span class="random-marker"><span lang="en">Social</span> / <span lang="ja">SNS</span></span></p>
+      <ul>
+        <li>
+          <a class="random-marker" href="https://www.instagram.com/shojiro_nakaoka/" target="_blank" rel="noopener noreferrer"
+            ><span lang="en">Instagram</span></a
+          >
+        </li>
+        <li>
+          <a class="random-marker" href="https://x.com/shojironakaoka" target="_blank" rel="noopener noreferrer"><span lang="en">X</span></a>
+        </li>
+        <li>
+          <a class="random-marker" href="https://www.youtube.com/channel/UCZjXI2cJHdc-4xlwZ6DX0_w" target="_blank" rel="noopener noreferrer"
+            ><span lang="en">YouTube</span></a
+          >
+        </li>
+      </ul>
+      <pre class="series-buffer-zone" id="series-buffer-zone" aria-hidden="true"></pre>
+    </main>
+  </body>
+</html>

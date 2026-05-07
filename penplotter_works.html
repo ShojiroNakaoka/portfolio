@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PEN PLOTTER WORKS BY SHOJIRO NAKAOKA</title>
+    <style>
+      body {
+        background-color: #c0c0c0;
+        color: #000000;
+        margin: 8px;
+        font-family: "Times New Roman", Times, serif;
+        font-size: medium;
+      }
+
+      a:link {
+        color: #0000ff;
+      }
+
+      a:visited {
+        color: #551a8b;
+      }
+
+      a:active {
+        color: #ff0000;
+      }
+
+      .random-marker {
+        display: inline;
+        padding: 0.08em 0.1em;
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+        max-width: 100%;
+        vertical-align: baseline;
+        background-color: var(--marker-bg-flat, hsla(55, 85%, 78%, 0.32));
+        background-image: linear-gradient(
+          180deg,
+          transparent var(--marker-pct-start, 4%),
+          var(--marker-fill, hsla(55, 85%, 62%, 0.65)) var(--marker-pct-start, 4%),
+          var(--marker-fill, hsla(55, 85%, 62%, 0.65)) var(--marker-pct-end, 96%),
+          transparent var(--marker-pct-end, 96%)
+        );
+      }
+
+      .random-marker[data-marker-flat="0"] {
+        background-color: transparent;
+      }
+
+      .random-marker[data-marker-band="0"] {
+        background-image: none;
+      }
+
+      .random-marker[data-marker-flat="0"][data-marker-band="0"] {
+        padding: 0;
+      }
+
+      h1.techno-drawing-headline {
+        font-size: clamp(1.75rem, 5vw, 2.75rem);
+        font-weight: normal;
+        margin: 0 0 0.2em;
+        line-height: 1.05;
+        letter-spacing: 0.04em;
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+      }
+
+      h3 {
+        font-size: 1.17em;
+        font-weight: bold;
+        margin: 1em 0 0.5em;
+      }
+
+      hr {
+        display: none;
+      }
+
+      ul {
+        margin: 0.5em 0;
+        padding-left: 2.5em;
+      }
+
+      p {
+        margin: 0.4em 0;
+      }
+
+      :lang(en) {
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .ascii-art {
+        font-family: "Courier New", Courier, monospace;
+        font-size: medium;
+        margin: 0.4em 0;
+      }
+
+      .series-divider {
+        font-family: "Courier New", Courier, monospace;
+        font-size: 10px;
+        line-height: 1.05;
+        margin: 0.9em 0 1.1em;
+        color: #000000;
+        white-space: pre;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        user-select: none;
+      }
+
+      .series-divider::-webkit-scrollbar {
+        display: none;
+      }
+
+      .title-end-decoration {
+        white-space: nowrap;
+      }
+
+      .series-buffer-zone {
+        font-family: "Courier New", Courier, monospace;
+        font-size: 10px;
+        line-height: 1.05;
+        margin: 1.35em 0 1.6em;
+        padding: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        white-space: pre;
+        color: #000000;
+        user-select: none;
+      }
+
+      .series-buffer-zone::-webkit-scrollbar {
+        display: none;
+      }
+
+      .gallery-grid {
+        display: block;
+      }
+
+      .series-details {
+        margin: 0.6em 0 0.2em;
+      }
+
+      .series-details > summary {
+        cursor: pointer;
+        width: fit-content;
+      }
+
+      .series-details__body {
+        margin-top: 0.35em;
+      }
+
+      .piece {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0.4em 0.8em 0.6em 0;
+      }
+
+      .thumb-wrap {
+        width: auto;
+      }
+
+      .thumb-wrap img {
+        display: block;
+        max-width: 225px;
+        width: auto;
+        height: auto;
+        border: 2px groove #c0c0c0;
+        background-color: #ffffff;
+      }
+
+      .piece-caption {
+        display: block;
+        font-size: 12px;
+      }
+
+      .piece-caption span:last-child {
+        margin-left: 0;
+        display: inline;
+      }
+
+      .thumb-wrap--zoom {
+        cursor: zoom-in;
+      }
+
+      .thumb-wrap--zoom:focus {
+        outline: 2px solid #000080;
+        outline-offset: 2px;
+      }
+
+      .thumb-wrap--zoom:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      .pp-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #c0c0c0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.75rem 0.75rem 2rem;
+        box-sizing: border-box;
+      }
+
+      .pp-lightbox[hidden] {
+        display: none !important;
+      }
+
+      .pp-lightbox__close {
+        position: absolute;
+        top: 0.35rem;
+        right: 0.35rem;
+        z-index: 2;
+        font: inherit;
+        font-size: 1rem;
+        line-height: 1.1;
+        padding: 0;
+        cursor: pointer;
+        color: #0000ff;
+        background: transparent;
+        border: 0;
+        text-decoration: underline;
+      }
+
+      .pp-lightbox__close:hover {
+        color: #0000ff;
+      }
+
+      .pp-lightbox__close:active {
+        color: #ff0000;
+      }
+
+      .pp-lightbox__stage {
+        max-width: 100%;
+        max-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pp-lightbox__stage img {
+        display: block;
+        max-width: min(100%, 100vw - 1.5rem);
+        max-height: calc(100vh - 4rem);
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border: 2px groove #c0c0c0;
+        background: #ffffff;
+        transform-origin: center center;
+        cursor: zoom-in;
+        touch-action: none;
+      }
+
+      .pp-lightbox__stage img[data-zoomed="1"] {
+        cursor: grab;
+      }
+
+      .pp-lightbox__stage img[data-dragging="1"] {
+        cursor: grabbing;
+      }
+    </style>
+    <script>
+      (function (global) {
+        function randomHsla(fillStyle) {
+          var h = Math.floor(Math.random() * 360);
+          var s = 28 + Math.random() * 72;
+          var l = fillStyle ? 42 + Math.random() * 38 : 55 + Math.random() * 32;
+          var a = fillStyle ? 0.3 + Math.random() * 0.7 : 0.1 + Math.random() * 0.88;
+          return "hsla(" + h + ", " + s + "%, " + l + "%, " + a + ")";
+        }
+
+        function randomMarkerColors() {
+          return {
+            fill: randomHsla(true),
+            flat: randomHsla(false),
+          };
+        }
+
+        function randomMarkerGradientStops() {
+          var minBand = 38 + Math.random() * 22;
+          var maxBand = 97;
+          var end = 40 + Math.random() * 59;
+          end = Math.min(99, Math.max(minBand + 5, end));
+          var maxStart = end - minBand;
+          var start = Math.random() * maxStart;
+          if (end - start > maxBand) {
+            start = Math.max(0, end - maxBand);
+          }
+          return {
+            start: start.toFixed(1) + "%",
+            end: end.toFixed(1) + "%",
+          };
+        }
+
+        function applyRandomMarkerFills(root) {
+          var scope = root || document;
+          var nodes = scope.querySelectorAll(".random-marker:not([data-marker-fill-set])");
+          for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            var bandOn = Math.random() < 0.5;
+            var flatOn = Math.random() < 0.5;
+            el.setAttribute("data-marker-band", bandOn ? "1" : "0");
+            el.setAttribute("data-marker-flat", flatOn ? "1" : "0");
+
+            el.style.removeProperty("--marker-fill");
+            el.style.removeProperty("--marker-bg-flat");
+            el.style.removeProperty("--marker-pct-start");
+            el.style.removeProperty("--marker-pct-end");
+
+            if (bandOn || flatOn) {
+              var colors = randomMarkerColors();
+              if (flatOn) {
+                el.style.setProperty("--marker-bg-flat", colors.flat);
+              }
+              if (bandOn) {
+                var stops = randomMarkerGradientStops();
+                el.style.setProperty("--marker-fill", colors.fill);
+                el.style.setProperty("--marker-pct-start", stops.start);
+                el.style.setProperty("--marker-pct-end", stops.end);
+              }
+            }
+
+            el.setAttribute("data-marker-fill-set", "1");
+          }
+        }
+
+        function generateTitleEndDecorationString(targetLen) {
+          var chars = [
+            "\u2592",
+            "\u2591",
+            "\u2588",
+            "\u2570",
+            "\u2500",
+            "\u256e",
+            "\u251c",
+            "\u2524",
+            "\u2502",
+            "\u2534",
+            "\u252c",
+            "\u253c",
+            "\u256f",
+            "\u256d",
+            "(",
+            ")",
+            "_",
+            " ",
+          ];
+          var motifs = [
+            "\u2570\u2500\u256e",
+            "\u251c\u2500\u2500",
+            "(_)",
+            "( )",
+            "(_)(_)",
+            "(_)(_)(_)",
+          ];
+          var n = chars.length;
+          var line = "";
+          while (line.length < targetLen) {
+            var placed = false;
+            if (Math.random() < 0.28 && line.length + 2 < targetLen) {
+              var m = motifs[Math.floor(Math.random() * motifs.length)];
+              if (line.length + m.length <= targetLen) {
+                line += m;
+                placed = true;
+              }
+            }
+            if (!placed) {
+              line += chars[Math.floor(Math.random() * n)];
+            }
+          }
+          return line.slice(0, targetLen);
+        }
+
+        function seriesLineContainerWidthPx() {
+          var host = document.getElementById("gallery-host");
+          if (host) {
+            return host.clientWidth || window.innerWidth || document.documentElement.clientWidth || 960;
+          }
+          var main = document.querySelector("main");
+          if (main && main.clientWidth > 0) {
+            return main.clientWidth;
+          }
+          var buf = document.getElementById("series-buffer-zone");
+          if (buf && buf.clientWidth > 0) {
+            return buf.clientWidth;
+          }
+          return window.innerWidth || document.documentElement.clientWidth || 960;
+        }
+
+        function seriesLineCharCount() {
+          var w = seriesLineContainerWidthPx();
+          return Math.max(40, Math.floor(w / 6.4));
+        }
+
+        function buildTitleEndDecoration() {
+          var el = document.getElementById("title-end-decoration");
+          if (!el) return;
+          var headline = el.parentElement;
+          var lead = headline ? headline.querySelector("span.random-marker[lang='en']") : null;
+          var hasForcedBreak = false;
+          if (lead && lead.nextSibling && lead.nextSibling.nodeType === Node.ELEMENT_NODE) {
+            var nextEl = lead.nextSibling;
+            hasForcedBreak = nextEl.tagName === "BR";
+          }
+
+          var availablePx;
+          if (hasForcedBreak) {
+            var header = headline ? headline.parentElement : null;
+            var blockWidth = header ? header.clientWidth : 0;
+            var randomOffset = 500 + Math.floor(Math.random() * 500);
+            availablePx = Math.max(90, blockWidth - randomOffset);
+          } else {
+            var headlineWidth = headline ? headline.clientWidth : 0;
+            var leadWidth = lead ? Math.ceil(lead.getBoundingClientRect().width) : 0;
+            availablePx = Math.max(90, headlineWidth - leadWidth - 10);
+          }
+          var charWidthPx = 10;
+          var len = Math.max(10, Math.floor(availablePx / charWidthPx));
+          el.textContent = " " + generateTitleEndDecorationString(len);
+        }
+
+        function buildSeriesBufferZone() {
+          var el = document.getElementById("series-buffer-zone");
+          if (!el) return;
+          var chars = ["\u2592", "\u2591", "\u2588"];
+          var rows = 5 + Math.floor(Math.random() * 10);
+          var cols = seriesLineCharCount();
+          var lines = [];
+          for (var r = 0; r < rows; r++) {
+            var line = "";
+            for (var c = 0; c < cols; c++) {
+              line += chars[Math.floor(Math.random() * 3)];
+            }
+            lines.push(line);
+          }
+          el.textContent = lines.join("\n");
+        }
+
+        global.applyRandomMarkerFills = applyRandomMarkerFills;
+        global.seriesLineContainerWidthPx = seriesLineContainerWidthPx;
+        global.seriesLineCharCount = seriesLineCharCount;
+        global.buildSeriesBufferZone = buildSeriesBufferZone;
+
+        document.addEventListener("DOMContentLoaded", function () {
+          buildTitleEndDecoration();
+          applyRandomMarkerFills(document);
+          buildSeriesBufferZone();
+          var bufferResizeTimer;
+          window.addEventListener(
+            "resize",
+            function () {
+              clearTimeout(bufferResizeTimer);
+              bufferResizeTimer = setTimeout(function () {
+                buildTitleEndDecoration();
+                buildSeriesBufferZone();
+              }, 220);
+            },
+            { passive: true }
+          );
+        });
+      })(window);
+    </script>
+  </head>
+  <body bgcolor="#c0c0c0" text="#000000" link="#0000ff" vlink="#551a8b" alink="#ff0000">
+    <header>
+      <h1 class="techno-drawing-headline">
+        <span class="random-marker" lang="en">TECHNO DRAWING</span><br />
+        <span
+          class="title-end-decoration random-marker"
+          id="title-end-decoration"
+          lang="en"
+          aria-hidden="true"
+        ></span>
+      </h1>
+      <p>
+        <span class="random-marker"
+          ><span lang="en">PEN PLOTTER WORKS BY </span
+          ><a href="index.html"
+            ><span lang="en">SHOJIRO NAKAOKA</span> / <span lang="ja">中岡将二郎</span></a
+          ><span lang="ja">のペンプロッター作品</span></span
+        >
+      </p>
+      <p>
+        <span class="random-marker"
+          ><span lang="en"
+            >If you are interested in purchasing a piece, please feel free to contact me. I will provide details
+            regarding availability, pricing, and shipping.</span
+          ><br />
+          <span lang="ja">作品購入をご希望の場合は、お気軽にご連絡ください。</span><br />
+          <span lang="ja">在庫状況・価格・配送についてご案内します。</span></span
+        >
+      </p>
+      <pre class="ascii-art" lang="en"> /MMM\   /MMM\   /MMM\ 
+|E x 3| |E x 3| |E x 3|
+ \WWW/   \WWW/   \WWW/ </pre>
+      <p>
+        <span class="random-marker"
+          ><a href="https://viridian-adapter-f76.notion.site/Technical-Background-1f572edc8aa680e7bf34f92985bdd884" target="_blank" rel="noopener noreferrer"
+            ><span lang="en">Technical Background</span> / <span lang="ja">技術背景</span></a
+          ></span
+        >
+      </p>
+    </header>
+    <main>
+      <pre class="series-buffer-zone" id="series-buffer-zone" aria-hidden="true"></pre>
+      <div id="gallery-host"></div>
+    </main>
+    <div
+      id="pp-lightbox"
+      class="pp-lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Enlarged artwork"
+      hidden
+    >
+      <button type="button" class="pp-lightbox__close" id="pp-lightbox-close" aria-label="Close">
+        [close]
+      </button>
+      <div class="pp-lightbox__stage">
+        <img id="pp-lightbox-img" alt="" />
+      </div>
+    </div>
+    <script src="js/gallery_data.js"></script>
+    <script>
+      (async function () {
+        var data = window.galleryData;
+        var host = document.getElementById("gallery-host");
+        if (!Array.isArray(data) || data.length === 0) {
+          return;
+        }
+
+        function loadSeriesConfig(slug) {
+          return fetch("artwork/" + encodeURIComponent(slug) + "/series_config.json")
+            .then(function (res) {
+              if (!res.ok) return null;
+              return res.json();
+            })
+            .catch(function () {
+              return null;
+            });
+        }
+
+        var sorted = data.slice().sort(function (a, b) {
+          if (a.series_index !== b.series_index) return a.series_index - b.series_index;
+          return a.display_order - b.display_order;
+        });
+
+        var lightbox = document.getElementById("pp-lightbox");
+        var lightboxImg = document.getElementById("pp-lightbox-img");
+        var lightboxClose = document.getElementById("pp-lightbox-close");
+        var lightboxPrevOverflow = "";
+        var lightboxScale = 1;
+        var lightboxPanX = 0;
+        var lightboxPanY = 0;
+        var lightboxDragging = false;
+        var lightboxMoved = false;
+        var lightboxDragPointerId = null;
+        var lightboxDragStartX = 0;
+        var lightboxDragStartY = 0;
+        var lightboxDragOriginX = 0;
+        var lightboxDragOriginY = 0;
+
+        function applyLightboxZoom() {
+          if (!lightboxImg) return;
+          if (lightboxScale <= 1) {
+            lightboxPanX = 0;
+            lightboxPanY = 0;
+          }
+          lightboxImg.style.transform =
+            "translate(" + lightboxPanX.toFixed(1) + "px, " + lightboxPanY.toFixed(1) + "px) " +
+            "scale(" + lightboxScale.toFixed(2) + ")";
+          lightboxImg.setAttribute("data-zoomed", lightboxScale > 1 ? "1" : "0");
+          lightboxImg.setAttribute("data-dragging", lightboxDragging ? "1" : "0");
+        }
+
+        function resetLightboxZoom() {
+          lightboxScale = 1;
+          lightboxPanX = 0;
+          lightboxPanY = 0;
+          lightboxDragging = false;
+          lightboxMoved = false;
+          lightboxDragPointerId = null;
+          applyLightboxZoom();
+        }
+
+        function openOriginalLightbox(primaryUrl, altText, fallbackUrl) {
+          if (!lightbox || !lightboxImg || !primaryUrl) return;
+          lightboxImg.removeAttribute("width");
+          lightboxImg.removeAttribute("height");
+          lightboxImg.alt = altText || "";
+          lightbox.hidden = false;
+          lightboxPrevOverflow = document.body.style.overflow;
+          document.body.style.overflow = "hidden";
+          resetLightboxZoom();
+          lightboxClose.focus();
+
+          lightboxImg.onload = null;
+          lightboxImg.onerror = null;
+
+          function tryLoad(url, isFallback) {
+            lightboxImg.onerror = function () {
+              lightboxImg.onerror = null;
+              if (!isFallback && fallbackUrl) {
+                tryLoad(fallbackUrl, true);
+              }
+            };
+            lightboxImg.src = encodeURI(url);
+          }
+          tryLoad(primaryUrl, false);
+        }
+
+        function closeOriginalLightbox() {
+          if (!lightbox || !lightboxImg) return;
+          lightbox.hidden = true;
+          resetLightboxZoom();
+          lightboxImg.onload = null;
+          lightboxImg.onerror = null;
+          lightboxImg.removeAttribute("src");
+          lightboxImg.alt = "";
+          document.body.style.overflow = lightboxPrevOverflow;
+        }
+
+        if (lightbox && lightboxImg && lightboxClose) {
+          lightboxClose.addEventListener("click", function (e) {
+            e.stopPropagation();
+            closeOriginalLightbox();
+          });
+          lightbox.addEventListener("click", function (e) {
+            if (e.target === lightbox) {
+              closeOriginalLightbox();
+            }
+          });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && lightbox && !lightbox.hidden) {
+              closeOriginalLightbox();
+            }
+          });
+          lightboxImg.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (lightboxMoved) {
+              lightboxMoved = false;
+              return;
+            }
+            lightboxScale = lightboxScale > 1 ? 1 : 2;
+            applyLightboxZoom();
+          });
+          lightboxImg.addEventListener(
+            "wheel",
+            function (e) {
+              if (lightbox.hidden) return;
+              e.preventDefault();
+              var direction = e.deltaY > 0 ? -0.2 : 0.2;
+              lightboxScale = Math.max(1, Math.min(10, lightboxScale + direction));
+              applyLightboxZoom();
+            },
+            { passive: false }
+          );
+          lightboxImg.addEventListener("pointerdown", function (e) {
+            if (lightboxScale <= 1) return;
+            e.preventDefault();
+            lightboxDragging = true;
+            lightboxMoved = false;
+            lightboxDragPointerId = e.pointerId;
+            lightboxDragStartX = e.clientX;
+            lightboxDragStartY = e.clientY;
+            lightboxDragOriginX = lightboxPanX;
+            lightboxDragOriginY = lightboxPanY;
+            if (lightboxImg.setPointerCapture) {
+              lightboxImg.setPointerCapture(e.pointerId);
+            }
+            applyLightboxZoom();
+          });
+          lightboxImg.addEventListener("pointermove", function (e) {
+            if (!lightboxDragging || e.pointerId !== lightboxDragPointerId) return;
+            e.preventDefault();
+            var dx = e.clientX - lightboxDragStartX;
+            var dy = e.clientY - lightboxDragStartY;
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+              lightboxMoved = true;
+            }
+            lightboxPanX = lightboxDragOriginX + dx;
+            lightboxPanY = lightboxDragOriginY + dy;
+            applyLightboxZoom();
+          });
+          function stopLightboxDrag(e) {
+            if (!lightboxDragging || e.pointerId !== lightboxDragPointerId) return;
+            lightboxDragging = false;
+            if (lightboxImg.releasePointerCapture) {
+              lightboxImg.releasePointerCapture(e.pointerId);
+            }
+            applyLightboxZoom();
+          }
+          lightboxImg.addEventListener("pointerup", stopLightboxDrag);
+          lightboxImg.addEventListener("pointercancel", stopLightboxDrag);
+        }
+
+        var seriesOrder = [];
+        var seen = Object.create(null);
+        var firstBySeries = Object.create(null);
+        sorted.forEach(function (item) {
+          if (!seen[item.series_id]) {
+            seen[item.series_id] = true;
+            seriesOrder.push(item.series_id);
+            firstBySeries[item.series_id] = item;
+          }
+        });
+
+        var slugs = seriesOrder.map(function (sid) {
+          var meta = firstBySeries[sid];
+          return meta.series_slug || meta.series_id;
+        });
+
+        var loaded = await Promise.all(slugs.map(loadSeriesConfig));
+
+        var CJK_RE =
+          /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u3400-\u4dbf\uff00-\uffef]/;
+
+        function appendLangAwareText(el, text) {
+          if (text == null || text === "") {
+            return;
+          }
+          var trimmed = String(text).trim();
+          var parts = trimmed.split(/\s*\/\s*/);
+          var hasCjkPart = parts.some(function (p) {
+            return CJK_RE.test(p);
+          });
+          var hasNonCjkPart = parts.some(function (p) {
+            return p.length > 0 && !CJK_RE.test(p);
+          });
+          if (parts.length >= 2 && hasCjkPart && hasNonCjkPart) {
+            for (var i = 0; i < parts.length; i++) {
+              if (i > 0) {
+                el.appendChild(document.createTextNode(" / "));
+              }
+              var span = document.createElement("span");
+              span.lang = CJK_RE.test(parts[i]) ? "ja" : "en";
+              span.textContent = parts[i];
+              el.appendChild(span);
+            }
+            return;
+          }
+          if (!CJK_RE.test(trimmed)) {
+            var enSpan = document.createElement("span");
+            enSpan.lang = "en";
+            enSpan.textContent = trimmed;
+            el.appendChild(enSpan);
+            return;
+          }
+          el.textContent = trimmed;
+        }
+
+        function createSeriesDivider() {
+          var pre = document.createElement("pre");
+          pre.className = "series-divider";
+          pre.setAttribute("aria-hidden", "true");
+          var marker = document.createElement("span");
+          marker.className = "random-marker";
+          marker.setAttribute("lang", "en");
+          marker.textContent = "________________________";
+          seriesDividerMarkers.push(marker);
+          pre.appendChild(marker);
+          return pre;
+        }
+
+        function clearElementChildren(el) {
+          while (el.firstChild) {
+            el.removeChild(el.firstChild);
+          }
+        }
+
+        var seriesLayouts = [];
+        var seriesDividerMarkers = [];
+        var previewLayoutTimer = null;
+
+        function scheduleSeriesPreviewLayout(delayMs) {
+          if (previewLayoutTimer) {
+            clearTimeout(previewLayoutTimer);
+          }
+          previewLayoutTimer = setTimeout(applySeriesPreviewLayout, delayMs || 80);
+        }
+
+        function refreshSeriesDividerWidths() {
+          var underscoreCount =
+            typeof window.seriesLineCharCount === "function"
+              ? window.seriesLineCharCount()
+              : Math.max(40, Math.floor((host.clientWidth || window.innerWidth || 960) / 6.4));
+          var dividerText = "_".repeat(underscoreCount);
+          seriesDividerMarkers.forEach(function (marker) {
+            marker.textContent = dividerText;
+          });
+        }
+
+        function applySeriesPreviewLayout() {
+          seriesLayouts.forEach(function (entry) {
+            clearElementChildren(entry.previewGrid);
+            clearElementChildren(entry.overflowGrid);
+            entry.figures.forEach(function (fig) {
+              entry.previewGrid.appendChild(fig);
+            });
+
+            var firstTop = null;
+            var firstRowCount = 0;
+            var topTolerancePx = 2;
+            entry.figures.forEach(function (fig) {
+              if (firstTop === null) {
+                firstTop = fig.offsetTop;
+                firstRowCount = 1;
+                return;
+              }
+              if (Math.abs(fig.offsetTop - firstTop) <= topTolerancePx) {
+                firstRowCount += 1;
+              }
+            });
+
+            entry.figures.forEach(function (fig, idx) {
+              if (idx >= firstRowCount) {
+                entry.overflowGrid.appendChild(fig);
+              }
+            });
+
+            var hasMoreItems = entry.figures.length > firstRowCount;
+            entry.details.hidden = !hasMoreItems && !entry.hasMetaText;
+          });
+        }
+
+        seriesOrder.forEach(function (seriesId, idx) {
+          var cfg = loaded[idx];
+          var meta = firstBySeries[seriesId];
+          var titleText =
+            (cfg && cfg.display_title) || meta.series_title || seriesId;
+          var dims =
+            (cfg && cfg.physical_dimensions) || meta.physical_dimensions || "";
+          var desc = (cfg && cfg.description) || meta.series_description || "";
+          var itemsInSeries = sorted.filter(function (item) {
+            return item.series_id === seriesId;
+          });
+
+          var section = document.createElement("section");
+          var title = document.createElement("h3");
+          var titleMarker = document.createElement("span");
+          titleMarker.className = "random-marker";
+          appendLangAwareText(titleMarker, titleText);
+          title.appendChild(titleMarker);
+          section.appendChild(title);
+
+          var previewGrid = document.createElement("div");
+          previewGrid.className = "gallery-grid";
+          section.appendChild(previewGrid);
+
+          var details = document.createElement("details");
+          details.className = "series-details";
+          var summary = document.createElement("summary");
+          var summaryMarker = document.createElement("span");
+          summaryMarker.className = "random-marker";
+          summaryMarker.innerHTML =
+            '<span lang="en">Show more</span> / <span lang="ja">続きを読む</span>';
+          summary.appendChild(summaryMarker);
+          details.appendChild(summary);
+
+          var detailsBody = document.createElement("div");
+          detailsBody.className = "series-details__body";
+          details.appendChild(detailsBody);
+
+          if (dims) {
+            var dim = document.createElement("p");
+            var dimMarker = document.createElement("span");
+            dimMarker.className = "random-marker";
+            appendLangAwareText(dimMarker, dims);
+            dim.appendChild(dimMarker);
+            detailsBody.appendChild(dim);
+          }
+          if (desc) {
+            var descEl = document.createElement("p");
+            var descMarker = document.createElement("span");
+            descMarker.className = "random-marker";
+            appendLangAwareText(descMarker, desc);
+            descEl.appendChild(descMarker);
+            detailsBody.appendChild(descEl);
+          }
+          var overflowGrid = document.createElement("div");
+          overflowGrid.className = "gallery-grid";
+          detailsBody.appendChild(overflowGrid);
+          section.appendChild(details);
+          var divider = createSeriesDivider();
+          host.appendChild(section);
+          host.appendChild(divider);
+
+          var figureList = [];
+          itemsInSeries.forEach(function (item) {
+              var fig = document.createElement("figure");
+              fig.className = "piece";
+              var wrap = document.createElement("div");
+              wrap.className = "thumb-wrap";
+              var img = document.createElement("img");
+              img.src = item.thumb_url;
+              img.alt = titleText + " — " + item.id;
+              img.loading = "lazy";
+              img.decoding = "async";
+              img.addEventListener("load", function () {
+                scheduleSeriesPreviewLayout(40);
+              });
+              img.addEventListener("error", function () {
+                scheduleSeriesPreviewLayout(40);
+              });
+              var serial =
+                item.piece_serial != null && item.piece_serial !== undefined
+                  ? item.piece_serial
+                  : item.display_order;
+              if (item.large_url) {
+                wrap.classList.add("thumb-wrap--zoom");
+                wrap.setAttribute("role", "button");
+                wrap.setAttribute("tabindex", "0");
+                wrap.setAttribute(
+                  "aria-label",
+                  "View enlarged: " + titleText + " #" + String(serial).padStart(2, "0")
+                );
+                img.dataset.largeUrl = item.large_url;
+                wrap.addEventListener("click", function (ev) {
+                  ev.preventDefault();
+                  openOriginalLightbox(img.dataset.largeUrl, img.alt, item.thumb_url);
+                });
+                wrap.addEventListener("keydown", function (ev) {
+                  if (ev.key === "Enter" || ev.key === " ") {
+                    ev.preventDefault();
+                    openOriginalLightbox(img.dataset.largeUrl, img.alt, item.thumb_url);
+                  }
+                });
+              }
+              wrap.appendChild(img);
+
+              var cap = document.createElement("figcaption");
+              cap.className = "piece-caption";
+
+              var capMarker = document.createElement("span");
+              capMarker.className = "random-marker";
+
+              var idLabel = document.createElement("span");
+              idLabel.lang = "en";
+              idLabel.textContent = "#" + String(serial).padStart(2, "0");
+
+              var soldLabel = document.createElement("span");
+              if (item.status === "sold_out") {
+                var soldEn = document.createElement("span");
+                soldEn.lang = "en";
+                soldEn.textContent = "Sold";
+                soldLabel.appendChild(soldEn);
+                soldLabel.appendChild(document.createTextNode(" / "));
+                var soldJa = document.createElement("span");
+                soldJa.lang = "ja";
+                soldJa.textContent = "販売済み";
+                soldLabel.appendChild(soldJa);
+              }
+
+              capMarker.appendChild(idLabel);
+              capMarker.appendChild(soldLabel);
+              cap.appendChild(capMarker);
+
+              fig.appendChild(wrap);
+              fig.appendChild(cap);
+              figureList.push(fig);
+            });
+          seriesLayouts.push({
+            previewGrid: previewGrid,
+            overflowGrid: overflowGrid,
+            details: details,
+            hasMetaText: !!dims || !!desc,
+            figures: figureList,
+          });
+        });
+        applySeriesPreviewLayout();
+        window.addEventListener("resize", function () {
+          scheduleSeriesPreviewLayout(100);
+          refreshSeriesDividerWidths();
+        });
+        window.addEventListener("load", function () {
+          scheduleSeriesPreviewLayout(0);
+          refreshSeriesDividerWidths();
+        });
+        refreshSeriesDividerWidths();
+        applyRandomMarkerFills(document);
+      })();
+    </script>
+  </body>
+</html>

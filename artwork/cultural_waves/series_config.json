@@ -1,0 +1,12 @@
+{
+  "series_id": "Came Wrong",
+  "display_title": "Came Wrong",
+  "physical_dimensions": "A3 size: 420mm x 297mm",
+  "description": "Came Wrong is a collection of 1/1 plotter drawings registering slight misalignments in form and structure.",
+  "thumb_frame_aspect": {
+    "width": 297,
+    "height": 420
+  },
+  "source_ok_dir": "../../../cultural waves/OK",
+  "source_so_dir": "../../../cultural waves/SO"
+}
