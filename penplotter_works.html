@@ -1246,6 +1246,17 @@
           idSpan.lang = "en";
           idSpan.textContent = "#" + String(entry.pieceSerial).padStart(2, "0");
           idMk.appendChild(idSpan);
+          if (entry.status === "sold_out") {
+            var soldEn = document.createElement("span");
+            soldEn.lang = "en";
+            soldEn.textContent = "Sold";
+            idMk.appendChild(soldEn);
+            idMk.appendChild(document.createTextNode(" / "));
+            var soldJa = document.createElement("span");
+            soldJa.lang = "ja";
+            soldJa.textContent = "販売済み";
+            idMk.appendChild(soldJa);
+          }
           idP.appendChild(idMk);
           capHost.appendChild(idP);
           if (typeof applyRandomMarkerFills === "function") {
@@ -1399,6 +1410,7 @@
                   thumbUrl: item.thumb_url,
                   seriesTitle: titleText,
                   pieceSerial: serial,
+                  status: item.status,
                 });
                 wrap.classList.add("thumb-wrap--zoom");
                 wrap.setAttribute("role", "button");
