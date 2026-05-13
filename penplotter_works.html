@@ -84,6 +84,10 @@
         margin: 0.4em 0;
       }
 
+      .page-parent-nav {
+        margin: 1.5em 0 0.75em;
+      }
+
       :lang(en) {
         font-family: "Courier New", Courier, monospace;
       }
@@ -227,8 +231,54 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 2.75rem 0.75rem 2rem;
+        padding: 2.75rem 3rem 2rem;
         box-sizing: border-box;
+        --pp-lb-chrome-font-size: clamp(1.05rem, 3.2vw, 1.65rem);
+      }
+
+      .pp-lightbox__nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        margin: 0;
+        padding: 0.35rem 0.45rem;
+        font: inherit;
+        font-size: var(--pp-lb-chrome-font-size);
+        line-height: 1;
+        color: #0000ff;
+        text-decoration: underline;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        user-select: none;
+        box-sizing: border-box;
+      }
+
+      .pp-lightbox__nav--prev {
+        left: max(0.25rem, env(safe-area-inset-left, 0px));
+      }
+
+      .pp-lightbox__nav--next {
+        right: max(0.25rem, env(safe-area-inset-right, 0px));
+      }
+
+      .pp-lightbox__nav:hover:not(.pp-lightbox__nav--inactive) {
+        color: #0000ff;
+      }
+
+      .pp-lightbox__nav:active:not(.pp-lightbox__nav--inactive) {
+        color: #ff0000;
+      }
+
+      .pp-lightbox__nav--inactive {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .pp-lightbox__nav:focus-visible {
+        outline: 2px solid #000080;
+        outline-offset: 2px;
       }
 
       .pp-lightbox[hidden] {
@@ -241,8 +291,8 @@
         right: 0.35rem;
         z-index: 2;
         font: inherit;
-        font-size: 1rem;
-        line-height: 1.1;
+        font-size: var(--pp-lb-chrome-font-size);
+        line-height: 1;
         padding: 0;
         cursor: pointer;
         color: #0000ff;
@@ -259,18 +309,42 @@
         color: #ff0000;
       }
 
+      /* Narrow viewports: rely on backdrop tap, OS back, and vertical swipe. */
+      @media (max-width: 42rem) {
+        .pp-lightbox {
+          padding: 2.5rem 0.6rem 1.25rem;
+        }
+
+        .pp-lightbox__close,
+        .pp-lightbox__nav {
+          display: none !important;
+        }
+      }
+
       .pp-lightbox__stage {
         max-width: 100%;
         max-height: 100%;
+        min-height: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
       }
 
-      .pp-lightbox__stage img {
+      .pp-lightbox__frame {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        max-height: 100%;
+        min-height: 0;
+      }
+
+      .pp-lightbox__frame img {
         display: block;
         max-width: min(100%, 100vw - 1.5rem);
-        max-height: calc(100vh - 4rem);
+        max-height: calc(100vh - 4rem - 5.75rem);
         width: auto;
         height: auto;
         object-fit: contain;
@@ -281,12 +355,28 @@
         touch-action: none;
       }
 
-      .pp-lightbox__stage img[data-zoomed="1"] {
+      .pp-lightbox__frame img[data-zoomed="1"] {
         cursor: grab;
       }
 
-      .pp-lightbox__stage img[data-dragging="1"] {
+      .pp-lightbox__frame img[data-dragging="1"] {
         cursor: grabbing;
+      }
+
+      .pp-lightbox__caption {
+        margin-top: 0.45rem;
+        text-align: center;
+        max-width: min(100%, 100vw - 6rem);
+        font-size: var(--pp-lb-chrome-font-size);
+        line-height: 1.2;
+      }
+
+      .pp-lightbox__caption-line {
+        margin: 0.15em 0;
+      }
+
+      .pp-lightbox__caption-line--id {
+        font-size: 1em;
       }
     </style>
     <script>
@@ -423,10 +513,13 @@
         }
 
         function buildTitleEndDecoration() {
+          var TITLE_END_DECORATION_MAX_CHARS = 53;
           var el = document.getElementById("title-end-decoration");
           if (!el) return;
           var headline = el.parentElement;
-          var lead = headline ? headline.querySelector("span.random-marker[lang='en']") : null;
+          var lead = headline
+            ? headline.querySelector("span.random-marker:not(.title-end-decoration)")
+            : null;
           var hasForcedBreak = false;
           if (lead && lead.nextSibling && lead.nextSibling.nodeType === Node.ELEMENT_NODE) {
             var nextEl = lead.nextSibling;
@@ -445,7 +538,10 @@
             availablePx = Math.max(90, headlineWidth - leadWidth - 10);
           }
           var charWidthPx = 10;
-          var len = Math.max(10, Math.floor(availablePx / charWidthPx));
+          var len = Math.min(
+            TITLE_END_DECORATION_MAX_CHARS,
+            Math.max(10, Math.floor(availablePx / charWidthPx))
+          );
           el.textContent = " " + generateTitleEndDecorationString(len);
         }
 
@@ -494,7 +590,9 @@
   <body bgcolor="#c0c0c0" text="#000000" link="#0000ff" vlink="#551a8b" alink="#ff0000">
     <header>
       <h1 class="techno-drawing-headline">
-        <span class="random-marker" lang="en">TECHNO DRAWING</span><br />
+        <span class="random-marker"
+          ><span lang="en">TECHNO DRAWING</span> / <span lang="ja">テクノドローイング</span></span
+        ><br />
         <span
           class="title-end-decoration random-marker"
           id="title-end-decoration"
@@ -504,20 +602,22 @@
       </h1>
       <p>
         <span class="random-marker"
-          ><span lang="en">PEN PLOTTER WORKS BY </span
-          ><a href="index.html"
-            ><span lang="en">SHOJIRO NAKAOKA</span> / <span lang="ja">中岡将二郎</span></a
-          ><span lang="ja">のペンプロッター作品</span></span
+          ><span lang="en"
+            >Techno drawing is drawing executed by a sequenced machine (pen plotter).<br />
+            Code sequences the motion of the pen, translating digital logic into visual sequences on paper.<br />
+            The mechanical rhythm and physical ink define the final character of the work.<br />
+            If you are interested in purchasing a piece, please feel free to contact me. I will provide details regarding availability, pricing, and shipping.</span
+          ></span
         >
       </p>
       <p>
         <span class="random-marker"
-          ><span lang="en"
-            >If you are interested in purchasing a piece, please feel free to contact me. I will provide details
-            regarding availability, pricing, and shipping.</span
-          ><br />
-          <span lang="ja">作品購入をご希望の場合は、お気軽にご連絡ください。</span><br />
-          <span lang="ja">在庫状況・価格・配送についてご案内します。</span></span
+          ><span lang="ja"
+            >テクノドローイングは、シーケンスされたマシン（ペンプロッター）によって実行されるドローイングである。<br />
+            コードがペンの動きをシーケンス化し、デジタルな論理を紙の上の視覚的シーケンスへと移し替える。<br />
+            機械的なリズムと物理的なインクが、作品の最終的な性格を形作る。<br />
+            作品購入をご希望の場合は、お気軽にご連絡ください。在庫状況・価格・配送についてご案内します。</span
+          ></span
         >
       </p>
       <pre class="ascii-art" lang="en"> /MMM\   /MMM\   /MMM\ 
@@ -534,21 +634,48 @@
     <main>
       <pre class="series-buffer-zone" id="series-buffer-zone" aria-hidden="true"></pre>
       <div id="gallery-host"></div>
+      <p class="page-parent-nav">
+        <span class="random-marker"
+          ><a class="random-marker" href="index.html"
+            ><span lang="en">Back to parent page</span> / <span lang="ja">一階層上のページへ戻る</span></a
+          ></span
+        >
+      </p>
     </main>
-    <div
+      <div
       id="pp-lightbox"
       class="pp-lightbox"
       role="dialog"
       aria-modal="true"
       aria-label="Enlarged artwork"
+      tabindex="-1"
       hidden
     >
       <button type="button" class="pp-lightbox__close" id="pp-lightbox-close" aria-label="Close">
         [close]
       </button>
+      <span
+        role="button"
+        tabindex="-1"
+        class="pp-lightbox__nav pp-lightbox__nav--prev pp-lightbox__nav--inactive"
+        id="pp-lightbox-prev"
+        aria-label="Previous artwork, 前の作品"
+        aria-disabled="true"
+        >&lt;</span>
       <div class="pp-lightbox__stage">
-        <img id="pp-lightbox-img" alt="" />
+        <div class="pp-lightbox__frame" id="pp-lightbox-frame">
+          <img id="pp-lightbox-img" alt="" />
+          <div id="pp-lightbox-caption" class="pp-lightbox__caption" aria-live="polite"></div>
+        </div>
       </div>
+      <span
+        role="button"
+        tabindex="-1"
+        class="pp-lightbox__nav pp-lightbox__nav--next pp-lightbox__nav--inactive"
+        id="pp-lightbox-next"
+        aria-label="Next artwork, 次の作品"
+        aria-disabled="true"
+        >&gt;</span>
     </div>
     <script src="js/gallery_data.js"></script>
     <script>
@@ -578,6 +705,17 @@
         var lightbox = document.getElementById("pp-lightbox");
         var lightboxImg = document.getElementById("pp-lightbox-img");
         var lightboxClose = document.getElementById("pp-lightbox-close");
+        var lightboxPrev = document.getElementById("pp-lightbox-prev");
+        var lightboxNext = document.getElementById("pp-lightbox-next");
+        var lightboxFrame = document.getElementById("pp-lightbox-frame");
+        var lightboxNavItems = [];
+        var lightboxIndex = -1;
+        var lightboxHistoryPushed = false;
+        var lightboxIgnorePopstate = false;
+        var lightboxSwipeSuppressClickUntil = 0;
+        var lightboxVerticalSwipeId = null;
+        var lightboxVerticalSwipeY0 = 0;
+        var lightboxVerticalSwipeX0 = 0;
         var lightboxPrevOverflow = "";
         var lightboxScale = 1;
         var lightboxPanX = 0;
@@ -613,16 +751,60 @@
           applyLightboxZoom();
         }
 
+        function openLightboxAtIndex(index) {
+          if (index < 0 || index >= lightboxNavItems.length) return;
+          var entry = lightboxNavItems[index];
+          lightboxIndex = index;
+          openOriginalLightbox(entry.largeUrl, entry.alt, entry.thumbUrl);
+        }
+
+        function setLbNavInactive(el, off) {
+          if (!el) return;
+          el.classList.toggle("pp-lightbox__nav--inactive", off);
+          el.setAttribute("aria-disabled", off ? "true" : "false");
+          el.tabIndex = off ? -1 : 0;
+        }
+
+        function updateLightboxNav() {
+          if (!lightboxPrev || !lightboxNext) return;
+          var n = lightboxNavItems.length;
+          var active = lightbox && !lightbox.hidden && n > 0 && lightboxIndex >= 0;
+          if (!active) {
+            setLbNavInactive(lightboxPrev, true);
+            setLbNavInactive(lightboxNext, true);
+            return;
+          }
+          setLbNavInactive(lightboxPrev, lightboxIndex <= 0);
+          setLbNavInactive(lightboxNext, lightboxIndex >= n - 1);
+        }
+
         function openOriginalLightbox(primaryUrl, altText, fallbackUrl) {
           if (!lightbox || !lightboxImg || !primaryUrl) return;
           lightboxImg.removeAttribute("width");
           lightboxImg.removeAttribute("height");
           lightboxImg.alt = altText || "";
+          var wasHidden = lightbox.hidden;
           lightbox.hidden = false;
+          if (wasHidden && typeof history.pushState === "function") {
+            try {
+              history.pushState({ penplotLb: 1 }, "", window.location.href);
+              lightboxHistoryPushed = true;
+            } catch (errLb) {
+              lightboxHistoryPushed = false;
+            }
+          }
           lightboxPrevOverflow = document.body.style.overflow;
           document.body.style.overflow = "hidden";
           resetLightboxZoom();
-          lightboxClose.focus();
+          if (wasHidden) {
+            var compactLb =
+              typeof window.matchMedia === "function" && window.matchMedia("(max-width: 42rem)").matches;
+            if (lightboxClose && !compactLb) {
+              lightboxClose.focus();
+            } else if (lightbox) {
+              lightbox.focus();
+            }
+          }
 
           lightboxImg.onload = null;
           lightboxImg.onerror = null;
@@ -637,23 +819,74 @@
             lightboxImg.src = encodeURI(url);
           }
           tryLoad(primaryUrl, false);
+          updateLightboxNav();
+          updateLightboxCaption();
         }
 
-        function closeOriginalLightbox() {
-          if (!lightbox || !lightboxImg) return;
+        function closeOriginalLightbox(fromPopstate) {
+          if (!lightbox || !lightboxImg || lightbox.hidden) return;
+          var hadPushed = lightboxHistoryPushed;
+          lightboxHistoryPushed = false;
           lightbox.hidden = true;
+          lightboxIndex = -1;
           resetLightboxZoom();
           lightboxImg.onload = null;
           lightboxImg.onerror = null;
           lightboxImg.removeAttribute("src");
           lightboxImg.alt = "";
           document.body.style.overflow = lightboxPrevOverflow;
+          updateLightboxNav();
+          updateLightboxCaption();
+          if (hadPushed && !fromPopstate && typeof history.back === "function") {
+            lightboxIgnorePopstate = true;
+            history.back();
+          }
         }
 
-        if (lightbox && lightboxImg && lightboxClose) {
+        if (lightbox && lightboxImg && lightboxClose && lightboxPrev && lightboxNext && lightboxFrame) {
+          window.addEventListener("popstate", function () {
+            if (lightboxIgnorePopstate) {
+              lightboxIgnorePopstate = false;
+              return;
+            }
+            if (lightbox && !lightbox.hidden) {
+              closeOriginalLightbox(true);
+            }
+          });
           lightboxClose.addEventListener("click", function (e) {
             e.stopPropagation();
             closeOriginalLightbox();
+          });
+          lightboxPrev.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (lightboxPrev.classList.contains("pp-lightbox__nav--inactive")) return;
+            if (lightboxIndex > 0) {
+              openLightboxAtIndex(lightboxIndex - 1);
+            }
+          });
+          lightboxNext.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (lightboxNext.classList.contains("pp-lightbox__nav--inactive")) return;
+            if (lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+              openLightboxAtIndex(lightboxIndex + 1);
+            }
+          });
+          function lightboxNavKey(e, delta) {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            if (delta < 0 && lightboxIndex > 0) {
+              openLightboxAtIndex(lightboxIndex - 1);
+            } else if (delta > 0 && lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+              openLightboxAtIndex(lightboxIndex + 1);
+            }
+          }
+          lightboxPrev.addEventListener("keydown", function (e) {
+            if (lightboxPrev.classList.contains("pp-lightbox__nav--inactive")) return;
+            lightboxNavKey(e, -1);
+          });
+          lightboxNext.addEventListener("keydown", function (e) {
+            if (lightboxNext.classList.contains("pp-lightbox__nav--inactive")) return;
+            lightboxNavKey(e, 1);
           });
           lightbox.addEventListener("click", function (e) {
             if (e.target === lightbox) {
@@ -661,12 +894,26 @@
             }
           });
           document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape" && lightbox && !lightbox.hidden) {
+            if (!lightbox || lightbox.hidden) return;
+            if (e.key === "Escape") {
               closeOriginalLightbox();
+              return;
+            }
+            if (e.key === "ArrowLeft" && lightboxIndex > 0) {
+              e.preventDefault();
+              openLightboxAtIndex(lightboxIndex - 1);
+              return;
+            }
+            if (e.key === "ArrowRight" && lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+              e.preventDefault();
+              openLightboxAtIndex(lightboxIndex + 1);
             }
           });
           lightboxImg.addEventListener("click", function (e) {
             e.stopPropagation();
+            if (Date.now() < lightboxSwipeSuppressClickUntil) {
+              return;
+            }
             if (lightboxMoved) {
               lightboxMoved = false;
               return;
@@ -674,6 +921,67 @@
             lightboxScale = lightboxScale > 1 ? 1 : 2;
             applyLightboxZoom();
           });
+          var LB_VERTICAL_SWIPE_MIN_PX = 52;
+          var LB_VERTICAL_SWIPE_MAX_HORIZ_RATIO = 0.65;
+
+          lightboxFrame.addEventListener(
+            "touchstart",
+            function (e) {
+              if (!lightbox || lightbox.hidden || lightboxScale > 1) return;
+              if (e.touches.length !== 1) {
+                lightboxVerticalSwipeId = null;
+                return;
+              }
+              var t0 = e.touches[0];
+              lightboxVerticalSwipeId = t0.identifier;
+              lightboxVerticalSwipeY0 = t0.clientY;
+              lightboxVerticalSwipeX0 = t0.clientX;
+            },
+            { passive: true }
+          );
+
+          lightboxFrame.addEventListener(
+            "touchend",
+            function (e) {
+              if (!lightbox || lightbox.hidden || lightboxScale > 1) return;
+              if (lightboxVerticalSwipeId == null) return;
+              var tEnd = null;
+              var ch = e.changedTouches;
+              for (var ti = 0; ti < ch.length; ti++) {
+                if (ch[ti].identifier === lightboxVerticalSwipeId) {
+                  tEnd = ch[ti];
+                  break;
+                }
+              }
+              lightboxVerticalSwipeId = null;
+              if (!tEnd) return;
+              var dy = tEnd.clientY - lightboxVerticalSwipeY0;
+              var dx = tEnd.clientX - lightboxVerticalSwipeX0;
+              if (Math.abs(dy) < LB_VERTICAL_SWIPE_MIN_PX) return;
+              if (Math.abs(dx) > Math.abs(dy) * LB_VERTICAL_SWIPE_MAX_HORIZ_RATIO) return;
+              var navigated = false;
+              if (dy < 0 && lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+                openLightboxAtIndex(lightboxIndex + 1);
+                navigated = true;
+              } else if (dy > 0 && lightboxIndex > 0) {
+                openLightboxAtIndex(lightboxIndex - 1);
+                navigated = true;
+              }
+              if (navigated) {
+                lightboxSwipeSuppressClickUntil = Date.now() + 450;
+              }
+            },
+            { passive: true }
+          );
+
+          lightboxFrame.addEventListener(
+            "touchcancel",
+            function () {
+              lightboxVerticalSwipeId = null;
+            },
+            { passive: true }
+          );
+
           lightboxImg.addEventListener(
             "wheel",
             function (e) {
@@ -795,6 +1103,37 @@
         function clearElementChildren(el) {
           while (el.firstChild) {
             el.removeChild(el.firstChild);
+          }
+        }
+
+        function updateLightboxCaption() {
+          var capHost = document.getElementById("pp-lightbox-caption");
+          if (!capHost) return;
+          clearElementChildren(capHost);
+          if (!lightbox || lightbox.hidden || lightboxIndex < 0 || lightboxIndex >= lightboxNavItems.length) {
+            return;
+          }
+          var entry = lightboxNavItems[lightboxIndex];
+          if (!entry || entry.seriesTitle == null) return;
+          var titleP = document.createElement("p");
+          titleP.className = "pp-lightbox__caption-line";
+          var titleMk = document.createElement("span");
+          titleMk.className = "random-marker";
+          appendLangAwareText(titleMk, entry.seriesTitle);
+          titleP.appendChild(titleMk);
+          capHost.appendChild(titleP);
+          var idP = document.createElement("p");
+          idP.className = "pp-lightbox__caption-line pp-lightbox__caption-line--id";
+          var idMk = document.createElement("span");
+          idMk.className = "random-marker";
+          var idSpan = document.createElement("span");
+          idSpan.lang = "en";
+          idSpan.textContent = "#" + String(entry.pieceSerial).padStart(2, "0");
+          idMk.appendChild(idSpan);
+          idP.appendChild(idMk);
+          capHost.appendChild(idP);
+          if (typeof applyRandomMarkerFills === "function") {
+            applyRandomMarkerFills(capHost);
           }
         }
 
@@ -937,6 +1276,14 @@
                   ? item.piece_serial
                   : item.display_order;
               if (item.large_url) {
+                var lbIndex = lightboxNavItems.length;
+                lightboxNavItems.push({
+                  largeUrl: item.large_url,
+                  alt: titleText + " — " + item.id,
+                  thumbUrl: item.thumb_url,
+                  seriesTitle: titleText,
+                  pieceSerial: serial,
+                });
                 wrap.classList.add("thumb-wrap--zoom");
                 wrap.setAttribute("role", "button");
                 wrap.setAttribute("tabindex", "0");
@@ -947,12 +1294,12 @@
                 img.dataset.largeUrl = item.large_url;
                 wrap.addEventListener("click", function (ev) {
                   ev.preventDefault();
-                  openOriginalLightbox(img.dataset.largeUrl, img.alt, item.thumb_url);
+                  openLightboxAtIndex(lbIndex);
                 });
                 wrap.addEventListener("keydown", function (ev) {
                   if (ev.key === "Enter" || ev.key === " ") {
                     ev.preventDefault();
-                    openOriginalLightbox(img.dataset.largeUrl, img.alt, item.thumb_url);
+                    openLightboxAtIndex(lbIndex);
                   }
                 });
               }
