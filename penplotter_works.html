@@ -392,6 +392,8 @@
 
       .pp-lightbox__frame img {
         display: block;
+        flex: 0 1 auto;
+        min-height: 0;
         max-width: min(100%, 100vw - 1.5rem);
         max-height: calc(100vh - 4rem - 5.75rem);
         width: auto;
@@ -413,11 +415,13 @@
       }
 
       .pp-lightbox__caption {
+        flex-shrink: 0;
         margin-top: 0.45rem;
         text-align: center;
         max-width: min(100%, 100vw - 6rem);
         font-size: var(--pp-lb-chrome-font-size);
         line-height: 1.2;
+        color: #000000;
       }
 
       .pp-lightbox__caption-line {
@@ -1246,7 +1250,10 @@
           idSpan.lang = "en";
           idSpan.textContent = "#" + String(entry.pieceSerial).padStart(2, "0");
           idMk.appendChild(idSpan);
-          if (entry.status === "sold_out") {
+          var entryStatusNorm = String(entry.status || "")
+            .toLowerCase()
+            .replace(/-/g, "_");
+          if (entryStatusNorm === "sold_out") {
             var soldEn = document.createElement("span");
             soldEn.lang = "en";
             soldEn.textContent = "Sold";
@@ -1322,8 +1329,10 @@
         seriesOrder.forEach(function (seriesId, idx) {
           var cfg = loaded[idx];
           var meta = firstBySeries[seriesId];
+          var titleBase = (cfg && cfg.display_title) || meta.series_title || seriesId;
+          var titleJaRaw = cfg && cfg.display_title_ja != null ? String(cfg.display_title_ja).trim() : "";
           var titleText =
-            (cfg && cfg.display_title) || meta.series_title || seriesId;
+            titleJaRaw !== "" ? String(titleBase).trim() + " / " + titleJaRaw : titleBase;
           var dims =
             (cfg && cfg.physical_dimensions) || meta.physical_dimensions || "";
           var desc = (cfg && cfg.description) || meta.series_description || "";
