@@ -281,6 +281,47 @@
         outline-offset: 2px;
       }
 
+      .pp-lightbox__nav-v {
+        display: none;
+        position: absolute;
+        left: 50%;
+        z-index: 2;
+        transform: translateX(-50%);
+        margin: 0;
+        padding: 0.2rem 0.45rem;
+        font: inherit;
+        font-size: var(--pp-lb-chrome-font-size);
+        line-height: 1;
+        color: #0000ff;
+        text-decoration: underline;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        user-select: none;
+        box-sizing: border-box;
+      }
+
+      .pp-lightbox__nav-v--up {
+        top: max(2.25rem, calc(env(safe-area-inset-top, 0px) + 1.5rem));
+      }
+
+      .pp-lightbox__nav-v--down {
+        bottom: max(0.85rem, calc(env(safe-area-inset-bottom, 0px) + 0.45rem));
+      }
+
+      .pp-lightbox__nav-v:hover:not(.pp-lightbox__nav--inactive) {
+        color: #0000ff;
+      }
+
+      .pp-lightbox__nav-v:active:not(.pp-lightbox__nav--inactive) {
+        color: #ff0000;
+      }
+
+      .pp-lightbox__nav-v:focus-visible {
+        outline: 2px solid #000080;
+        outline-offset: 2px;
+      }
+
       .pp-lightbox[hidden] {
         display: none !important;
       }
@@ -309,7 +350,7 @@
         color: #ff0000;
       }
 
-      /* Narrow viewports: rely on backdrop tap, OS back, and vertical swipe. */
+      /* Narrow viewports: vertical arrows + swipe; hide close and horizontal nav. */
       @media (max-width: 42rem) {
         .pp-lightbox {
           padding: 2.5rem 0.6rem 1.25rem;
@@ -318,6 +359,14 @@
         .pp-lightbox__close,
         .pp-lightbox__nav {
           display: none !important;
+        }
+
+        .pp-lightbox__nav-v {
+          display: block;
+        }
+
+        .pp-lightbox__frame img {
+          max-height: calc(100vh - 4rem - 7.25rem);
         }
       }
 
@@ -657,11 +706,21 @@
       <span
         role="button"
         tabindex="-1"
+        class="pp-lightbox__nav-v pp-lightbox__nav-v--up pp-lightbox__nav--inactive"
+        id="pp-lightbox-nav-up"
+        aria-label="Next artwork — swipe up, 次の作品（上にスワイプ）"
+        aria-disabled="true"
+        >↑</span
+      >
+      <span
+        role="button"
+        tabindex="-1"
         class="pp-lightbox__nav pp-lightbox__nav--prev pp-lightbox__nav--inactive"
         id="pp-lightbox-prev"
         aria-label="Previous artwork, 前の作品"
         aria-disabled="true"
-        >&lt;</span>
+        >&lt;</span
+      >
       <div class="pp-lightbox__stage">
         <div class="pp-lightbox__frame" id="pp-lightbox-frame">
           <img id="pp-lightbox-img" alt="" />
@@ -675,7 +734,17 @@
         id="pp-lightbox-next"
         aria-label="Next artwork, 次の作品"
         aria-disabled="true"
-        >&gt;</span>
+        >&gt;</span
+      >
+      <span
+        role="button"
+        tabindex="-1"
+        class="pp-lightbox__nav-v pp-lightbox__nav-v--down pp-lightbox__nav--inactive"
+        id="pp-lightbox-nav-down"
+        aria-label="Previous artwork — swipe down, 前の作品（下にスワイプ）"
+        aria-disabled="true"
+        >↓</span
+      >
     </div>
     <script src="js/gallery_data.js"></script>
     <script>
@@ -707,6 +776,8 @@
         var lightboxClose = document.getElementById("pp-lightbox-close");
         var lightboxPrev = document.getElementById("pp-lightbox-prev");
         var lightboxNext = document.getElementById("pp-lightbox-next");
+        var lightboxNavUp = document.getElementById("pp-lightbox-nav-up");
+        var lightboxNavDown = document.getElementById("pp-lightbox-nav-down");
         var lightboxFrame = document.getElementById("pp-lightbox-frame");
         var lightboxNavItems = [];
         var lightboxIndex = -1;
@@ -772,10 +843,14 @@
           if (!active) {
             setLbNavInactive(lightboxPrev, true);
             setLbNavInactive(lightboxNext, true);
+            setLbNavInactive(lightboxNavUp, true);
+            setLbNavInactive(lightboxNavDown, true);
             return;
           }
           setLbNavInactive(lightboxPrev, lightboxIndex <= 0);
           setLbNavInactive(lightboxNext, lightboxIndex >= n - 1);
+          setLbNavInactive(lightboxNavUp, lightboxIndex >= n - 1);
+          setLbNavInactive(lightboxNavDown, lightboxIndex <= 0);
         }
 
         function openOriginalLightbox(primaryUrl, altText, fallbackUrl) {
@@ -843,7 +918,16 @@
           }
         }
 
-        if (lightbox && lightboxImg && lightboxClose && lightboxPrev && lightboxNext && lightboxFrame) {
+        if (
+          lightbox &&
+          lightboxImg &&
+          lightboxClose &&
+          lightboxPrev &&
+          lightboxNext &&
+          lightboxNavUp &&
+          lightboxNavDown &&
+          lightboxFrame
+        ) {
           window.addEventListener("popstate", function () {
             if (lightboxIgnorePopstate) {
               lightboxIgnorePopstate = false;
@@ -871,6 +955,20 @@
               openLightboxAtIndex(lightboxIndex + 1);
             }
           });
+          lightboxNavUp.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (lightboxNavUp.classList.contains("pp-lightbox__nav--inactive")) return;
+            if (lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+              openLightboxAtIndex(lightboxIndex + 1);
+            }
+          });
+          lightboxNavDown.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (lightboxNavDown.classList.contains("pp-lightbox__nav--inactive")) return;
+            if (lightboxIndex > 0) {
+              openLightboxAtIndex(lightboxIndex - 1);
+            }
+          });
           function lightboxNavKey(e, delta) {
             if (e.key !== "Enter" && e.key !== " ") return;
             e.preventDefault();
@@ -887,6 +985,14 @@
           lightboxNext.addEventListener("keydown", function (e) {
             if (lightboxNext.classList.contains("pp-lightbox__nav--inactive")) return;
             lightboxNavKey(e, 1);
+          });
+          lightboxNavUp.addEventListener("keydown", function (e) {
+            if (lightboxNavUp.classList.contains("pp-lightbox__nav--inactive")) return;
+            lightboxNavKey(e, 1);
+          });
+          lightboxNavDown.addEventListener("keydown", function (e) {
+            if (lightboxNavDown.classList.contains("pp-lightbox__nav--inactive")) return;
+            lightboxNavKey(e, -1);
           });
           lightbox.addEventListener("click", function (e) {
             if (e.target === lightbox) {
@@ -907,6 +1013,16 @@
             if (e.key === "ArrowRight" && lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
               e.preventDefault();
               openLightboxAtIndex(lightboxIndex + 1);
+              return;
+            }
+            if (e.key === "ArrowUp" && lightboxScale <= 1 && lightboxIndex >= 0 && lightboxIndex < lightboxNavItems.length - 1) {
+              e.preventDefault();
+              openLightboxAtIndex(lightboxIndex + 1);
+              return;
+            }
+            if (e.key === "ArrowDown" && lightboxScale <= 1 && lightboxIndex > 0) {
+              e.preventDefault();
+              openLightboxAtIndex(lightboxIndex - 1);
             }
           });
           lightboxImg.addEventListener("click", function (e) {
